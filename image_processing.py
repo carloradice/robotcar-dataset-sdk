@@ -23,7 +23,7 @@ def parse_args():
 def process(models_dir, image_path, dir):
     image_dir = os.path.join(image_path, dir)
     camera_model = CameraModel(models_dir, image_dir)
-    print('IMAGES SAVED AT: ', args.save_path + '/' + dir)
+    print('IMAGES SAVED AT: ', args.save_path + dir)
     count = 0
     for image_name in os.listdir(image_path + '/' + dir):
         image = load_image(image_path + '/' + dir + '/' + image_name, camera_model)
