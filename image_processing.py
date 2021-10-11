@@ -20,6 +20,21 @@ def parse_args():
     return parser.parse_args()
 
 
+def process(models_dir, image_path, dir):
+    image_dir = os.path.join(image_path, dir)
+    camera_model = CameraModel(models_dir, image_dir)
+    print('IMAGES SAVED AT: ', args.save_path + '/' + dir)
+    count = 0
+    for image_name in os.listdir(image_path + '/' + dir):
+        image = load_image(image_path + '/' + dir + '/' + image_name, camera_model)
+        image_name = image_name.split('.')[0]
+        save_path = os.path.join(args.save_path, dir, '{}.{}'.format(image_name, 'jpg'))
+        count += 1
+        if count % 100 == 0:
+            print(count, " DONE")
+        matplotlib.image.imsave(save_path, image)
+
+
 def image_processing(args):
     image_path = args.image_path
     models_dir = '/home/radice/neuralNetworks/robotcar-dataset-sdk/models'
@@ -34,32 +49,9 @@ def image_processing(args):
         sub = os.listdir(image_path)
         for dir in sub:
             if dir == 'left':
-                image_dir = os.path.join(image_path, dir)
-                camera_model = CameraModel(models_dir, image_dir)
-                print('IMAGES SAVED AT: ', args.save_path + '/left')
-                count = 0
-                for image_name in  os.listdir(image_path + '/' + dir):
-                    image = load_image(image_path + '/' + dir + '/' + image_name, camera_model)
-                    image_name = image_name.split('.')[0]
-                    save_path = os.path.join(args.save_path, dir, '{}.{}'.format(image_name, 'jpg'))
-                    count += 1
-                    if count % 100 == 0:
-                        print(count, " DONE")
-                    matplotlib.image.imsave(save_path, image)
-
+                process(models_dir, image_path, dir)
             if dir == 'right':
-                image_dir = os.path.join(image_path, dir)
-                camera_model = CameraModel(models_dir, image_dir)
-                print('IMAGES SAVED AT: ', args.save_path + '/right')
-                count = 0
-                for image_name in  os.listdir(image_path + '/' + dir):
-                    image = load_image(image_path + '/' + dir + '/' + image_name, camera_model)
-                    image_name = image_name.split('.')[0]
-                    save_path = os.path.join(args.save_path, dir, '{}.{}'.format(image_name, 'jpg'))
-                    count += 1
-                    if count % 100 == 0:
-                        print(count, " DONE")
-                    matplotlib.image.imsave(save_path, image)
+                process(models_dir, image_path, dir)
 
 
 if __name__ == "__main__":
