@@ -19,11 +19,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='processing oxford raw images')
 
-    parser.add_argument('--data_path', type=str,
-                        help='path to a folder of images', required=True)
-
-    # parser.add_argument('--save_path', type=str,
-    #                     help='path where to save processed images', required=True)
+    parser.add_argument('--folder', type=str,
+                        help='folder of images of   oxford dataset', required=True)
 
     parser.add_argument('--cores', type=int,
                         help='number of cpu cores for parallelism', default=1)
@@ -108,10 +105,8 @@ def main(args):
     Main function.
     """
     global data_path
-    #data_path = args.data_path
-    data_path = os.path.join(media_path, args.data_path, 'stereo')
+    data_path = os.path.join(media_path, args.folder, 'stereo')
     global save_path
-    #save_path = args.save_path
     save_path = os.path.join(media_path, args.data_path, 'processed', 'stereo')
     global global_dir
 
