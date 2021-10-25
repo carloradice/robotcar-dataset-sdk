@@ -12,7 +12,7 @@ from python.image import load_image
 from python.camera_model import *
 
 models_dir = '/home/radice/neuralNetworks/robotcar-dataset-sdk/models'
-media_path = '/media/RAIDONE/radice/'
+media_path = '/media/RAIDONE/radice/OXFORD'
 home_path = '/home/radice/neuralNetworks/splits/OXFORD'
 
 def parse_args():
@@ -22,8 +22,8 @@ def parse_args():
     parser.add_argument('--data_path', type=str,
                         help='path to a folder of images', required=True)
 
-    parser.add_argument('--save_path', type=str,
-                        help='path where to save processed images', required=True)
+    # parser.add_argument('--save_path', type=str,
+    #                     help='path where to save processed images', required=True)
 
     parser.add_argument('--cores', type=int,
                         help='number of cpu cores for parallelism', default=1)
@@ -54,7 +54,7 @@ def image_processing(models_dir, data_path, dir, save_path, file_list_int):
         os.makedirs(save_data_path)
         print('-> PATH', save_data_path, 'CREATED')
 
-    print('-> SAVE PATH: ', save_data_path)
+    print('-> SAVE PATH', save_data_path)
 
     data_dir = os.path.join(data_path, dir)
 
@@ -74,6 +74,9 @@ def image_processing(models_dir, data_path, dir, save_path, file_list_int):
             print('-> PATH', os.path.join(media_path, folder), 'CREATED')
         file_name = 'frames_association'
         association_file_path = os.path.join(home_path, folder, '{}{}'.format(file_name, '.csv'))
+        if not os.path.exists(os.path.join(home_path, folder)):
+            os.makedirs(os.path.join(home_path, folder))
+            print('-> PATH', os.path.join(home_path, folder), 'CREATED')
         print('-> ASSOCIATION FILE SAVE PATH:', association_file_path)
 
         for index, file in enumerate(file_list_int):
@@ -105,9 +108,11 @@ def main(args):
     Main function.
     """
     global data_path
-    data_path = args.data_path
+    #data_path = args.data_path
+    data_path = os.path.join(media_path, args.data_path, 'stereo')
     global save_path
-    save_path = args.save_path
+    #save_path = args.save_path
+    save_path = os.path.join(media_path, args.data_path, 'processed', 'stereo')
     global global_dir
 
     if not os.path.isdir(data_path):
