@@ -3,7 +3,7 @@ import multiprocessing
 import os
 import matplotlib
 import re
-from shutil import copy
+from shutil import copy, rmtree
 from multiprocessing import Pool
 import pandas as pd
 import sys
@@ -20,7 +20,7 @@ def parse_args():
         description='processing oxford raw images')
 
     parser.add_argument('--folder', type=str,
-                        help='folder of images of   oxford dataset', required=True)
+                        help='folder of images of oxford dataset', required=True)
 
     parser.add_argument('--cores', type=int,
                         help='number of cpu cores for parallelism', default=1)
@@ -107,7 +107,7 @@ def main(args):
     global data_path
     data_path = os.path.join(media_path, args.folder, 'stereo')
     global save_path
-    save_path = os.path.join(media_path, args.data_path, 'processed', 'stereo')
+    save_path = os.path.join(media_path, args.folder, 'processed', 'stereo')
     global global_dir
 
     if not os.path.isdir(data_path):
@@ -133,6 +133,11 @@ def main(args):
 
     global_dir = right_folder
     image_processing(models_dir, data_path, right_folder, save_path, right_file_list_int)
+
+    # remove original stereo folder with .png files for disk usage problems
+    print('-> Removing stereo folder', data_path, '...')
+    rmtree(data_path)
+    print('-> DONE')
 
 
 if __name__ == "__main__":
