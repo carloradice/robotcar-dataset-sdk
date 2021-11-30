@@ -11,9 +11,10 @@ import sys
 from python.image import load_image
 from python.camera_model import *
 
-models_dir = '/home/radice/neuralNetworks/robotcar-dataset-sdk/models'
-media_path = '/media/RAIDONE/radice/OXFORD'
-home_path = '/home/radice/neuralNetworks/splits/OXFORD'
+MODELS_DIR = '/home/radice/neuralNetworks/robotcar-dataset-sdk/models'
+MEDIA_PATH = '/media/RAIDONE/radice/datasets/oxford'
+HOME_PATH = '/home/radice/neuralNetworks/splits/OXFORD'
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -66,14 +67,14 @@ def image_processing(models_dir, data_path, dir, save_path, file_list_int):
         association = []
         splitted = data_path.split('/')
         folder = [s for s in splitted if ('2014' or '2015') in s][0]
-        if not os.path.exists(os.path.join(media_path, folder)):
-            os.makedirs(os.path.join(media_path, folder))
-            print('-> PATH', os.path.join(media_path, folder), 'CREATED')
+        if not os.path.exists(os.path.join(MEDIA_PATH, folder)):
+            os.makedirs(os.path.join(MEDIA_PATH, folder))
+            print('-> PATH', os.path.join(MEDIA_PATH, folder), 'CREATED')
         file_name = 'frames_association'
-        association_file_path = os.path.join(home_path, folder, '{}{}'.format(file_name, '.csv'))
-        if not os.path.exists(os.path.join(home_path, folder)):
-            os.makedirs(os.path.join(home_path, folder))
-            print('-> PATH', os.path.join(home_path, folder), 'CREATED')
+        association_file_path = os.path.join(HOME_PATH, folder, '{}{}'.format(file_name, '.csv'))
+        if not os.path.exists(os.path.join(HOME_PATH, folder)):
+            os.makedirs(os.path.join(HOME_PATH, folder))
+            print('-> PATH', os.path.join(HOME_PATH, folder), 'CREATED')
         print('-> ASSOCIATION FILE SAVE PATH:', association_file_path)
 
         for index, file in enumerate(file_list_int):
@@ -105,9 +106,9 @@ def main(args):
     Main function.
     """
     global data_path
-    data_path = os.path.join(media_path, args.folder, 'stereo')
+    data_path = os.path.join(MEDIA_PATH, args.folder, 'stereo')
     global save_path
-    save_path = os.path.join(media_path, args.folder, 'processed', 'stereo')
+    save_path = os.path.join(MEDIA_PATH, args.folder, 'processed', 'stereo')
     global global_dir
 
     if not os.path.isdir(data_path):
@@ -129,10 +130,10 @@ def main(args):
             'NOT THE SAME NUMBER OF IMAGES: RIGHT={}, LEFT={}'.format(len(right_file_list), len(left_file_list)))
 
     global_dir = left_folder
-    image_processing(models_dir, data_path, left_folder, save_path, left_file_list_int)
+    image_processing(MODELS_DIR, data_path, left_folder, save_path, left_file_list_int)
 
     global_dir = right_folder
-    image_processing(models_dir, data_path, right_folder, save_path, right_file_list_int)
+    image_processing(MODELS_DIR, data_path, right_folder, save_path, right_file_list_int)
 
     # remove original stereo folder with .png files for disk usage problems
     print('-> Removing stereo folder', data_path, '...')
