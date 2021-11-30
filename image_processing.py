@@ -38,23 +38,26 @@ def parallel_processing(tuple):
 
     file_path = os.path.join(data_path, global_dir, '{}{}'.format(str(file), '.png'))
     
-    processed = load_image(file_path, camera_model)
+    processed_file = load_image(file_path, camera_model)
     
     file_name = str(index).zfill(10)
-    save_file_path = os.path.join(save_path, global_dir, '{}{}'.format(file_name, '.png'))
-    matplotlib.image.imsave(save_file_path, processed)
+    
+    save_processed_file_path = os.path.join(data_path, global_dir, '{}{}'.format(file_name, '.png'))
+    matplotlib.image.imsave(save_processed_file_path, processed)
+
+    os.remove(file_path)
 
 
-def image_processing(models_dir, data_path, dir, save_path, file_list_int):
+
+def image_processing(models_dir, data_path, dir, file_list_int):
     """
     Executes parallel_processing.
     """
     global camera_model
-    save_data_path = os.path.join(save_path, dir)
-
-    print('-> Save path', save_data_path)
 
     data_dir = os.path.join(data_path, dir)
+
+    print('-> Save path', data_dir)
 
     camera_model = CameraModel(models_dir, data_dir)
 
@@ -107,8 +110,6 @@ def main(args):
     """
     global data_path
     data_path = os.path.join(MEDIA_PATH, args.folder, 'stereo')
-    global save_path
-    save_path = data_path
     global global_dir
 
     if not os.path.isdir(data_path):
@@ -130,15 +131,10 @@ def main(args):
             'NOT THE SAME NUMBER OF IMAGES: RIGHT={}, LEFT={}'.format(len(right_file_list), len(left_file_list)))
 
     global_dir = left_folder
-    image_processing(MODELS_DIR, data_path, left_folder, save_path, left_file_list_int)
+    image_processing(MODELS_DIR, data_path, left_folder, left_file_list_int)
 
     global_dir = right_folder
-    image_processing(MODELS_DIR, data_path, right_folder, save_path, right_file_list_int)
-
-    # remove original stereo folder with .png files for disk usage problems
-    #print('-> Removing stereo folder', data_path, '...')
-    #rmtree(data_path)
-    #print('-> DONE')
+    image_processing(MODELS_DIR, data_path, right_folder, right_file_list_int)
 
 
 if __name__ == "__main__":
