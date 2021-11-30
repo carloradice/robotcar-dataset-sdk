@@ -35,9 +35,13 @@ def parallel_processing(tuple):
     """
     index = tuple[0]
     file = tuple[1]
+
     file_path = os.path.join(data_path, global_dir, '{}{}'.format(str(file), '.png'))
+    
     processed = load_image(file_path, camera_model)
-    save_file_path = os.path.join(save_path, global_dir, '{}{}'.format(index, '.jpg'))
+    
+    file_name = str(index).zfill(10)
+    save_file_path = os.path.join(save_path, global_dir, '{}{}'.format(file_name, '.png'))
     matplotlib.image.imsave(save_file_path, processed)
 
 
@@ -48,11 +52,7 @@ def image_processing(models_dir, data_path, dir, save_path, file_list_int):
     global camera_model
     save_data_path = os.path.join(save_path, dir)
 
-    if not os.path.exists(save_data_path):
-        os.makedirs(save_data_path)
-        print('-> PATH', save_data_path, 'CREATED')
-
-    print('-> SAVE PATH', save_data_path)
+    print('-> Save path', save_data_path)
 
     data_dir = os.path.join(data_path, dir)
 
@@ -69,13 +69,13 @@ def image_processing(models_dir, data_path, dir, save_path, file_list_int):
         folder = [s for s in splitted if ('2014' or '2015') in s][0]
         if not os.path.exists(os.path.join(MEDIA_PATH, folder)):
             os.makedirs(os.path.join(MEDIA_PATH, folder))
-            print('-> PATH', os.path.join(MEDIA_PATH, folder), 'CREATED')
+            print('-> Path', os.path.join(MEDIA_PATH, folder), 'created')
         file_name = 'frames_association'
         association_file_path = os.path.join(HOME_PATH, folder, '{}{}'.format(file_name, '.csv'))
         if not os.path.exists(os.path.join(HOME_PATH, folder)):
             os.makedirs(os.path.join(HOME_PATH, folder))
-            print('-> PATH', os.path.join(HOME_PATH, folder), 'CREATED')
-        print('-> ASSOCIATION FILE SAVE PATH:', association_file_path)
+            print('-> Path', os.path.join(HOME_PATH, folder), 'created')
+        print('-> Association file save path:', association_file_path)
 
         for index, file in enumerate(file_list_int):
             row = []
@@ -108,7 +108,7 @@ def main(args):
     global data_path
     data_path = os.path.join(MEDIA_PATH, args.folder, 'stereo')
     global save_path
-    save_path = os.path.join(MEDIA_PATH, args.folder, 'processed', 'stereo')
+    save_path = data_path
     global global_dir
 
     if not os.path.isdir(data_path):
@@ -118,9 +118,9 @@ def main(args):
     right_folder = 'right'
 
     data_path_left = os.path.join(data_path, left_folder)
-    print('-> LOAD PATH', data_path_left)
+    print('-> Load path', data_path_left)
     data_path_right = os.path.join(data_path, right_folder)
-    print('-> LOAD PATH', data_path_right)
+    print('-> Load path', data_path_right)
 
     left_file_list_int, left_file_list = sort(data_path_left)
     right_file_list_int, right_file_list = sort(data_path_right)
@@ -136,9 +136,9 @@ def main(args):
     image_processing(MODELS_DIR, data_path, right_folder, save_path, right_file_list_int)
 
     # remove original stereo folder with .png files for disk usage problems
-    print('-> Removing stereo folder', data_path, '...')
-    rmtree(data_path)
-    print('-> DONE')
+    #print('-> Removing stereo folder', data_path, '...')
+    #rmtree(data_path)
+    #print('-> DONE')
 
 
 if __name__ == "__main__":
