@@ -37,13 +37,11 @@ def parallel_processing(tuple):
     file = tuple[1]
 
     file_path = os.path.join(data_path, global_dir, '{}{}'.format(str(file), '.png'))
-    
     processed_file = load_image(file_path, camera_model)
     
     file_name = str(index).zfill(10)
-    
     save_processed_file_path = os.path.join(data_path, global_dir, '{}{}'.format(file_name, '.png'))
-    matplotlib.image.imsave(save_processed_file_path, processed)
+    matplotlib.image.imsave(save_processed_file_path, processed_file)
 
     os.remove(file_path)
 
@@ -54,11 +52,8 @@ def image_processing(models_dir, data_path, dir, file_list_int):
     Executes parallel_processing.
     """
     global camera_model
-
     data_dir = os.path.join(data_path, dir)
-
     print('-> Save path', data_dir)
-
     camera_model = CameraModel(models_dir, data_dir)
 
     # esecuzione preprocessing parallelo
