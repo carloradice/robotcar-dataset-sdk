@@ -77,8 +77,7 @@ def main(args):
         lsorted_list.append((idx, lfile))
         rsorted_list.append((idx, rfile))
         # file con le associazioni nome vecchio e nome nuovo
-        match_file.write('{} {}\n'.format(str(idx), os.path.basename(file)))
-
+        match_file.write('{} {}\n'.format(str(idx), os.path.basename(file).split('.')[0]))
 
 
     N = int(len(lsorted_list) * THRESHOLD)
