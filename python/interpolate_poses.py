@@ -87,6 +87,12 @@ def interpolate_ins_poses(ins_path, pose_timestamps, origin_timestamp, use_rtk=F
 
             utm = row[5:8] if not use_rtk else row[4:7]
             rpy = row[-3:] if not use_rtk else row[11:14]
+            '''
+            Errore risolto grazie a https://github.com/ori-mrg/robotcar-dataset-sdk/issues/30
+            '''
+            if use_rtk == True:
+                rpy[2] = str(float(rpy[2]) + ((3 * 3.14159265359)/2))
+                
             xyzrpy = [float(v) for v in utm] + [float(v) for v in rpy]
             abs_pose = build_se3_transform(xyzrpy)
             abs_poses.append(abs_pose)
