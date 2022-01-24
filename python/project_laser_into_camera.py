@@ -67,15 +67,42 @@ pointcloud, reflectance = build_pointcloud(args.laser_dir, args.poses_file, args
 
 pointcloud = np.dot(G_camera_posesource, pointcloud)
 
+print(pointcloud.shape)
+mx = 0
+mn = 10
+for i in range (0, pointcloud.shape[1]):
+    if pointcloud[0, i] > mx:
+        mx = pointcloud[0, i]
+    if pointcloud[0, i] < mn and pointcloud[0, i] > 0:
+        mn = pointcloud[0, i]
+print(mn, mx)
+
 image_path = os.path.join(args.image_dir, str(timestamp) + '.png')
 image = load_image(image_path, model)
 
 uv, depth = model.project(pointcloud, image.shape)
 
+# depth definisce i colori dei punti di uv : blu vicino -> rosso lontano
+uv_0 = []
+uv_1 = []
+d = []
+for i in range(0,len(depth)):
+    # cap depth
+    if depth[i] < 30:
+        uv_0.append(uv[0,i])
+        uv_1.append(uv[1,i])
+        d.append(depth[i])
+
+print('-> {} lidar points'.format(len(d)))
+print('Depth min {}, max {}'.format(min(d), max(d)))
+
 plt.imshow(image)
-plt.scatter(np.ravel(uv[0, :]), np.ravel(uv[1, :]), s=2, c=depth, edgecolors='none', cmap='jet')
+# plt.scatter(np.ravel(uv[0, :]), np.ravel(uv[1, :]), s=2,  c=depth, edgecolors='none', cmap='jet')
+plt.scatter(uv_0, uv_1, s=2,  c=d, edgecolors='none', cmap='jet')
 plt.xlim(0, image.shape[1])
 plt.ylim(image.shape[0], 0)
+# plt.xlim(0, image.shape[1])
+# plt.ylim(810, 200)
 plt.xticks([])
 plt.yticks([])
 plt.show()
