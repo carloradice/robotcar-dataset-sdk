@@ -11,9 +11,10 @@ import sys
 from python.image import load_image
 from python.camera_model import *
 
-models_dir = '/home/radice/neuralNetworks/robotcar-dataset-sdk/models'
-media_path = '/media/RAIDONE/radice/OXFORD'
-home_path = '/home/radice/neuralNetworks/splits/OXFORD'
+MODELS_DIR = '/home/radice/neuralNetworks/robotcar-dataset-sdk/models'
+MEDIA_PATH = '/media/RAIDONE/radice/datasets/oxford'
+HOME_PATH = '/home/radice/neuralNetworks/splits/OXFORD'
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -34,27 +35,25 @@ def parallel_processing(tuple):
     """
     index = tuple[0]
     file = tuple[1]
+
     file_path = os.path.join(data_path, global_dir, '{}{}'.format(str(file), '.png'))
-    processed = load_image(file_path, camera_model)
-    save_file_path = os.path.join(save_path, global_dir, '{}{}'.format(index, '.jpg'))
-    matplotlib.image.imsave(save_file_path, processed)
+    processed_file = load_image(file_path, camera_model)
+    
+    file_name = str(index).zfill(10)
+    save_processed_file_path = os.path.join(data_path, global_dir, '{}{}'.format(file_name, '.png'))
+    matplotlib.image.imsave(save_processed_file_path, processed_file)
+
+    os.remove(file_path)
 
 
-def image_processing(models_dir, data_path, dir, save_path, file_list_int):
+
+def image_processing(models_dir, data_path, dir, file_list_int):
     """
     Executes parallel_processing.
     """
     global camera_model
-    save_data_path = os.path.join(save_path, dir)
-
-    if not os.path.exists(save_data_path):
-        os.makedirs(save_data_path)
-        print('-> PATH', save_data_path, 'CREATED')
-
-    print('-> SAVE PATH', save_data_path)
-
     data_dir = os.path.join(data_path, dir)
-
+    print('-> Save path', data_dir)
     camera_model = CameraModel(models_dir, data_dir)
 
     # esecuzione preprocessing parallelo
@@ -66,15 +65,15 @@ def image_processing(models_dir, data_path, dir, save_path, file_list_int):
         association = []
         splitted = data_path.split('/')
         folder = [s for s in splitted if ('2014' or '2015') in s][0]
-        if not os.path.exists(os.path.join(media_path, folder)):
-            os.makedirs(os.path.join(media_path, folder))
-            print('-> PATH', os.path.join(media_path, folder), 'CREATED')
+        if not os.path.exists(os.path.join(MEDIA_PATH, folder)):
+            os.makedirs(os.path.join(MEDIA_PATH, folder))
+            print('-> Path', os.path.join(MEDIA_PATH, folder), 'created')
         file_name = 'frames_association'
-        association_file_path = os.path.join(home_path, folder, '{}{}'.format(file_name, '.csv'))
-        if not os.path.exists(os.path.join(home_path, folder)):
-            os.makedirs(os.path.join(home_path, folder))
-            print('-> PATH', os.path.join(home_path, folder), 'CREATED')
-        print('-> ASSOCIATION FILE SAVE PATH:', association_file_path)
+        association_file_path = os.path.join(HOME_PATH, folder, '{}{}'.format(file_name, '.csv'))
+        if not os.path.exists(os.path.join(HOME_PATH, folder)):
+            os.makedirs(os.path.join(HOME_PATH, folder))
+            print('-> Path', os.path.join(HOME_PATH, folder), 'created')
+        print('-> Association file save path:', association_file_path)
 
         for index, file in enumerate(file_list_int):
             row = []
@@ -105,9 +104,7 @@ def main(args):
     Main function.
     """
     global data_path
-    data_path = os.path.join(media_path, args.folder, 'stereo')
-    global save_path
-    save_path = os.path.join(media_path, args.folder, 'processed', 'stereo')
+    data_path = os.path.join(MEDIA_PATH, args.folder, 'stereo')
     global global_dir
 
     if not os.path.isdir(data_path):
@@ -117,9 +114,9 @@ def main(args):
     right_folder = 'right'
 
     data_path_left = os.path.join(data_path, left_folder)
-    print('-> LOAD PATH', data_path_left)
+    print('-> Load path', data_path_left)
     data_path_right = os.path.join(data_path, right_folder)
-    print('-> LOAD PATH', data_path_right)
+    print('-> Load path', data_path_right)
 
     left_file_list_int, left_file_list = sort(data_path_left)
     right_file_list_int, right_file_list = sort(data_path_right)
@@ -129,15 +126,10 @@ def main(args):
             'NOT THE SAME NUMBER OF IMAGES: RIGHT={}, LEFT={}'.format(len(right_file_list), len(left_file_list)))
 
     global_dir = left_folder
-    image_processing(models_dir, data_path, left_folder, save_path, left_file_list_int)
+    image_processing(MODELS_DIR, data_path, left_folder, left_file_list_int)
 
     global_dir = right_folder
-    image_processing(models_dir, data_path, right_folder, save_path, right_file_list_int)
-
-    # remove original stereo folder with .png files for disk usage problems
-    print('-> Removing stereo folder', data_path, '...')
-    rmtree(data_path)
-    print('-> DONE')
+    image_processing(MODELS_DIR, data_path, right_folder, right_file_list_int)
 
 
 if __name__ == "__main__":
