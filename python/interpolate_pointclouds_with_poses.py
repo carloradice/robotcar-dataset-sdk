@@ -3,7 +3,6 @@ from velodyne import *
 import open3d as o3d
 import numpy as np
 import glob
-import copy
 from build_pointcloud import build_pointcloud
 from transform import build_se3_transform
 
@@ -38,13 +37,10 @@ def main():
     pcd_r = o3d.geometry.PointCloud()
     tmp_r = o3d.geometry.PointCloud()
 
-    #for i in range(0, 10):
     pc, ref = build_pointcloud(lidar_dir=VELO_L, extrinsics_dir=EXTRINSICS, poses_file=POSES_FILE, start_time=l[0],
                                end_time=l[len(l)-1], origin_time=-1)
     pc[3,:] = ref
     tmp_l = get_pcl(pc)
-
-    #tmp_l.paint_uniform_color([1, 0.706, 0])
 
     pcd_l += tmp_l
 
@@ -53,13 +49,9 @@ def main():
     pc[3, :] = ref
     tmp_r = get_pcl(pc)
 
-    #tmp_r.paint_uniform_color([0, 0.651, 0.929])
-
     pcd_r += tmp_r
 
-
     o3d.visualization.draw_geometries([pcd_l, pcd_r])
-
 
 if __name__ == '__main__':
     pcds = main()
