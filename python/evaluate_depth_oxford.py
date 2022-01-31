@@ -169,10 +169,10 @@ def velodyne_depth_evaluation():
 
         for i in range(0, a.shape[1]):
             if depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] == 0:
-                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = depth[i]
+                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = d[i]
 
-            elif depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] > depth[i]:
-                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = depth[i]
+            elif depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] > d[i]:
+                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = d[i]
 
         #print(depth_mask.shape)
 
@@ -284,10 +284,10 @@ def lms_depth_evaluation():
 
         for i in range(0, a.shape[1]):
             if depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] == 0:
-                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = depth[i]
+                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = d[i]
 
-            elif depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] > depth[i]:
-                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = depth[i]
+            elif depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] > d[i]:
+                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = d[i]
 
         #print(depth_mask.shape)
 
