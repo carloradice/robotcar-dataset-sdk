@@ -85,9 +85,12 @@ def velodyne_depth_evaluation():
     # VO frame and vehicle frame are the same
     G_camera_posesource = G_camera_vehicle
 
-    l = []
-    for f in sorted(glob.glob(VELO_L + '/*.png')):
-        l.append(int(os.path.basename(f).split('.')[0]))
+    # l = []
+    # for f in sorted(glob.glob(VELO_L + '/*.png')):
+    #     l.append(int(os.path.basename(f).split('.')[0]))
+    # r = []
+    # for f in sorted(glob.glob(VELO_R + '/*.png')):
+    #     r.append(int(os.path.basename(f).split('.')[0]))
 
     errors = []
 
@@ -96,29 +99,25 @@ def velodyne_depth_evaluation():
         prediction = os.path.basename(lines[i].rstrip()).split('.')[0]
 
         # prendo la scansione velodyne successiva più vicina al frame
-        n = 10000000000000000000
-        for v in l:
-            if v > timestamp and v < n:
-                n = v
-
+        # n = 10000000000000000000
+        # for v in l:
+        #     if v > timestamp and v < n:
+        #         n = v
         #print('Next timestamp{}'.format(n))
         pointcloud, reflectance = bpc(lidar_dir=VELO_L, extrinsics_dir=EXTRINSICS, poses_file=POSES_FILE,
-                                      start_time=n, end_time=n, origin_time=-1)
+                                      start_time=timestamp, end_time=timestamp+1e6, origin_time=timestamp)
         pointcloud_l = np.dot(G_camera_posesource, pointcloud)
 
         # print(pointcloud_l.shape)
 
-        r = []
-        for f in sorted(glob.glob(VELO_R + '/*.png')):
-            r.append(int(os.path.basename(f).split('.')[0]))
         # prendo la scansione velodyne successiva più vicina al frame
-        n = 10000000000000000000
-        for v in r:
-            if v > timestamp and v < n:
-                n = v
+        # n = 10000000000000000000
+        # for v in r:
+        #     if v > timestamp and v < n:
+        #         n = v
         #print('Next timestamp{}'.format(n))
         pointcloud, reflectance = bpc(lidar_dir=VELO_R, extrinsics_dir=EXTRINSICS, poses_file=POSES_FILE,
-                                      start_time=n, end_time=n, origin_time=-1)
+                                      start_time=timestamp, end_time=timestamp+1e6, origin_time=timestamp)
 
         pointcloud_r = np.dot(G_camera_posesource, pointcloud)
 
@@ -315,6 +314,6 @@ def lms_depth_evaluation():
 
 
 if __name__ == '__main__':
-    # velodyne_depth_evaluation()
+    velodyne_depth_evaluation()
 
-    lms_depth_evaluation()
+    # lms_depth_evaluation()
