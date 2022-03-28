@@ -96,7 +96,6 @@ def bpc(lidar_dir, poses_file, extrinsics_dir, start_time, end_time, origin_time
         if interval == None:
             pointcloud = np.hstack([pointcloud, scan])
         elif i % interval == 0:
-            print(timestamps[i])
             pointcloud = np.hstack([pointcloud, scan])
 
 
@@ -117,45 +116,28 @@ def single_time():
         extrinsics = [float(x) for x in next(extrinsics_file).split(' ')]
 
     G_camera_vehicle = build_se3_transform(extrinsics)
-    G_camera_posesource = None
 
     # VO frame and vehicle frame are the same
     G_camera_posesource = G_camera_vehicle
 
-    l = []
-    for f in sorted(glob.glob(VELO_L+'/*.png')):
-        l.append(int(os.path.basename(f).split('.')[0]))
-    # prendo la scansione velodyne successiva più vicina al frame
-    n = 10000000000000000000
-    for v in l:
-        if v > timestamp and v < n:
-            n = v
-    print('Next {}'.format(n))
     pointcloud, reflectance = bpc(lidar_dir=VELO_L, extrinsics_dir=EXTRINSICS, poses_file=POSES_FILE,
-                                               start_time=n, end_time=n, origin_time=-1)
+                                  start_time=timestamp, end_time=timestamp + 1e5, origin_time=timestamp)
     pointcloud_l = np.dot(G_camera_posesource, pointcloud)
     print(pointcloud_l.shape)
 
-    r = []
-    for f in sorted(glob.glob(VELO_R + '/*.png')):
-        r.append(int(os.path.basename(f).split('.')[0]))
-    # prendo la scansione velodyne successiva più vicina al frame
-    n = 10000000000000000000
-    for v in r:
-        if v > timestamp and v < n:
-            n = v
-    print('Next {}'.format(n))
     pointcloud, reflectance = bpc(lidar_dir=VELO_R, extrinsics_dir=EXTRINSICS, poses_file=POSES_FILE,
-                                               start_time=n, end_time=n, origin_time=-1)
-
+                                  start_time=timestamp, end_time=timestamp + 1e5, origin_time=timestamp)
     pointcloud_r = np.dot(G_camera_posesource, pointcloud)
-
     print(pointcloud_r.shape)
 
-    pointcloud = np.hstack([pointcloud_l, pointcloud_r])
+    pointcloud = np.array([[0], [0], [0], [0]])
+    pointcloud = np.hstack([pointcloud, pointcloud_l])
+    pointcloud = np.hstack([pointcloud, pointcloud_r])
 
     image_path = os.path.join(STEREO_LEFT, str(timestamp) + '.png')
     image = load_image(image_path, model)
+
+    print(pointcloud.shape)
 
     uv, depth = model.project(pointcloud, image.shape)
 
@@ -257,6 +239,126 @@ def main():
         single_time()
     else:
         multi_time()
+
+
+
+
+def lms_depth_evaluation():
+    print('LMS depth evaluation')
+
+    test_file = open(TEST_FILE, 'r')
+    lines = test_file.readlines()
+    test_file.close()
+
+    match_file = open(MATCH_FILE, 'r')
+    match_lines = match_file.readlines()
+    match_file.close()
+
+    timestamps = []
+
+    for line in lines:
+        basename = os.path.basename(line.rstrip()).split('.')[0]
+        for match_line in match_lines:
+            match_line = match_line.rstrip().split(' ')
+            if int(match_line[0]) == int(basename):
+                timestamps.append(int(match_line[1]))
+
+    model = CameraModel(MODELS_DIR, STEREO_LEFT)
+
+    extrinsics_path = os.path.join(EXTRINSICS, model.camera + '.txt')
+    with open(extrinsics_path) as extrinsics_file:
+        extrinsics = [float(x) for x in next(extrinsics_file).split(' ')]
+
+    G_camera_vehicle = build_se3_transform(extrinsics)
+
+    # VO frame and vehicle frame are the same
+    G_camera_posesource = G_camera_vehicle
+
+    errors = []
+
+    for i in range(0, len(timestamps)):
+        timestamp = timestamps[i]
+        prediction = os.path.basename(lines[i].rstrip()).split('.')[0]
+
+        print(timestamp, prediction)
+
+        pointcloud, reflectance = build_pointcloud(LMS_FRONT, POSES_FILE, EXTRINSICS,
+                                                   timestamp - 1e7, timestamp + 1e7, timestamp)
+
+        pointcloud = np.dot(G_camera_posesource, pointcloud)
+
+        image_path = os.path.join(STEREO_LEFT, str(timestamp) + '.png')
+
+        image = load_image(image_path, model)
+
+        uv, depth = model.project(pointcloud, image.shape)
+
+        #print('image shape {}, uv shape {}, len depth {}'.format(image.shape, uv.shape, len(depth)))
+
+        # 0 < uv[0, :] < 1280
+        # 0 < uv[1, :] < 960
+        b = []
+        d = []
+        count = 0
+        for i in range(0, len(depth)):
+            if CROP_AREA[1] < uv[1, i] < CROP_AREA[3] and  MIN_DEPTH < depth[i] < MAX_DEPTH:
+                count += 1
+                b.append([uv[0, i], uv[1, i]])
+                d.append(depth[i])
+
+        a = np.ndarray((2, count))
+
+        for i in range(0, count):
+            a[0, i] = b[i][0]
+            a[1, i] = b[i][1] - CROP_AREA[1]
+
+        img = image[CROP_AREA[1]:CROP_AREA[3], CROP_AREA[0]:CROP_AREA[2], :]
+
+        pred_disp = np.load(PREDICTIONS_DIR + '/' + '{}_disp.npy'.format(prediction))
+
+        # (1, WIDTH, HEIGHT)
+        pred_disp = pred_disp[0]
+        # (WIDTH, HEIGHT)
+        pred_disp = pred_disp[0]
+        #print(pred_disp.shape)
+
+        pred_disp = cv2.resize(pred_disp, (img.shape[1], img.shape[0]))
+        pred_depth = 1 / pred_disp
+        #print(pred_depth.shape)
+
+        depth_mask = np.zeros((pred_depth.shape[0], pred_depth.shape[1]))
+        #print(depth_mask.shape)
+
+        for i in range(0, a.shape[1]):
+            if depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] == 0:
+                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = d[i]
+
+            elif depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] > d[i]:
+                depth_mask[int(np.floor(a[1, i])), int(np.floor(a[0, i]))] = d[i]
+
+        #print(depth_mask.shape)
+
+        dm = np.logical_and(depth_mask > MIN_DEPTH, depth_mask < MAX_DEPTH)
+
+        dtpm = depth_mask[dm]
+        prdpth = pred_depth[dm]
+
+        #print(len(depth_mask[dm]))
+        #print(len(pred_depth[dm]))
+
+        ratio = np.median(dtpm) / np.median(prdpth)
+        #print(ratio)
+        prdpth *= ratio
+
+        e = compute_errors(dtpm, prdpth)
+        errors.append(e)
+
+
+
+    mean_errors = np.array(errors).mean(0)
+    print("\n  " + ("{:>8} | " * 7).format("abs_rel", "sq_rel", "rmse", "rmse_log", "a1", "a2", "a3"))
+    print(("&{: 8.3f}  " * 7).format(*mean_errors.tolist()) + "\\\\")
+    print("\n-> Done!")
 
 
 if __name__ == '__main__':
